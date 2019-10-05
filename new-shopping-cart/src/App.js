@@ -1,12 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import 'rbx/index.css';
-import { Button, Container, Title, Card, Image, Content, Column } from 'rbx';
+import { Button, Container, Title, Card, Image, Content, Column, Notification, Navbar } from 'rbx';
 
-const Sizes = ['XS','S','M','L','XL']
+const sizes = ['S','M','L','XL'];
 
 const Banner = () => (
   <React.Fragment>
-    <Title>{ 'Shopping Cart' }</Title>
+    <Navbar>
+      <Navbar.Brand>
+        <Navbar.Item>
+          <strong>Shopping</strong>
+        </Navbar.Item>
+      </Navbar.Brand>
+      <Navbar.Menu>
+        <Navbar.Segment align = 'end'>
+          <Navbar.Item>
+            <Button.Group>
+              <Button color = 'primary'>
+                <strong>Sign up</strong>
+              </Button>
+              <Button color = 'light'>Log in</Button>
+              <Button color = 'danger'> 
+              <strong>Cart</strong>
+              </Button>
+            </Button.Group>
+          </Navbar.Item>
+        </Navbar.Segment>
+      </Navbar.Menu>
+    </Navbar>
   </React.Fragment>
 );
 
@@ -31,34 +52,53 @@ const Product = ({ products }) => (
           </Content>
         </Card.Content>
         <Card.Footer>
-          <Card.Footer.Item>
-            { products.currencyFormat }{ products.price }
-          </Card.Footer.Item>
-          <Card.Footer.Item>
-            Add to cart
-          </Card.Footer.Item>
+          <Column size = 'full'>
+            <Notification>
+              <SizeButtons />
+            </Notification>
+              <Column.Group gapless>
+                <Card.Footer.Item>
+                  { products.currencyFormat }{ products.price }
+                </Card.Footer.Item>
+                <Card.Footer.Item>
+                  Add to cart
+                </Card.Footer.Item>
+              </Column.Group>
+          </Column>
         </Card.Footer>
       </Card>
     </Column>
   </React.Fragment>
 );
 
-const ProductList = ({ products, stateProduct }) => {
-  const ProductDisplay = products
+
+
+const ProductList = ({ products }) => {
 
 return (
     <React.Fragment>
       <Column.Group multiline>
-        { ProductDisplay.map(products => <Product key = { products.sku } products = { products }/>)}
+        { products.map(products => <Product key = { products.sku } products = { products }/>)}
       </Column.Group>
     </React.Fragment>
   );
 };
 
+const SizeButtons = () => (
+  <Button.Group align = 'centered'>
+      { Object.values(sizes)
+        .map(value =>
+          <Button rounded key = { value } >
+              { value }
+          </Button>
+        )
+      }
+  </Button.Group>
+);
+
 const App = () => {
   const [data, setData] = useState({});
   const products = Object.values(data);
-  const [ProductDisplay, setProductDisplay] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -70,12 +110,14 @@ const App = () => {
   }, []);
 
   return (
-    <ul>
+    <React.Fragment>
       <Container>
         <Banner/>
-        <ProductList products={ products } stateProduct={ { ProductDisplay, setProductDisplay} }/>
       </Container>
-    </ul>
+      <Container>
+        <ProductList products={ products } />
+      </Container>
+    </React.Fragment>
   );
 };
 
