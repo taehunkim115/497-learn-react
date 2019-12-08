@@ -5,6 +5,22 @@ import ShoppingCart from '@material-ui/icons/ShoppingCart';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Button2 from '@material-ui/core/Button';
 import { makeStyles, AppBar, Toolbar, Typography, IconButton, MenuItem, Menu, GridList, GridListTile, GridListTileBar } from '@material-ui/core';
+import firebase from 'firebase/app';
+import 'firebase/database';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMwReaxvMbZ7lyi1JxH82qC8vge4wBf2c",
+  authDomain: "learn-react-69446.firebaseapp.com",
+  databaseURL: "https://learn-react-69446.firebaseio.com",
+  projectId: "learn-react-69446",
+  storageBucket: "learn-react-69446.appspot.com",
+  messagingSenderId: "969030982771",
+  appId: "1:969030982771:web:ccaf42de90c35d95f51e06"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database().ref();
 
 const sizes = ['S','M','L','XL'];
 
@@ -461,6 +477,16 @@ const App = () => {
       setData(json)
     };
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const handleData = snap => {
+      if (snap.val()) setInven(snap.val());
+    }
+    db.on('value', handleData, error => alert(error));
+    return () => {
+      db.off('value', handleData);
+    };
   }, []);
 
   return (
