@@ -181,8 +181,21 @@ const Banner = (cart_data, setCart_data) => {
   );
 };
 
-const ProductCard = ({ products }) => {
+const ProductCard = ({ products, cart_data, setCart_data }) => {
   const classes = useStylescart();
+  const [remove, setRemove] = useState()
+
+  const handleRemove = () => {
+    console.log("removing")
+    if (products.quantity === 1) {
+      const newcart = cart_data.cart_data.filter(r => r.id !== products.id && r.size === products.size);
+      cart_data.setCart_data(newcart);
+    }
+    else {
+      products.quantity--
+      setRemove(true)
+    }
+  }
 
   const caption = (
     <React.Fragment>
@@ -206,7 +219,7 @@ const ProductCard = ({ products }) => {
       subtitle={caption}
       actionIcon={
         <IconButton color='inherit'>
-          <DeleteIcon />
+          <DeleteIcon onClick = {handleRemove} />
         </IconButton>
         }
     />
@@ -217,17 +230,11 @@ const ProductCard = ({ products }) => {
 const CartList = ({ cart_data, setCart_data }) => {
   const classes = useStylesgrid();
 
-  // const handleRemove = () => {
-  //   console.log("removing")
-  //   const newcart = selectedRestaurants.filter(r => r.name !== restaurantName);
-  //   setSelectedRestaurants(newSelectedRestaurants);
-  // }
-
   if (cart_data.cart_data.length !== 0) {
     return (
       <React.Fragment className={classes.root}>
           <GridList className={classes.gridList}>
-            { cart_data.cart_data.map(products => <ProductCard key = { products.sku } products = { products }/>)}
+            { cart_data.cart_data.map(products => <ProductCard key = { products.sku } products = { products } cart_data={cart_data} setCart_data={setCart_data}/>)}
           </GridList>
       </React.Fragment>
     );
