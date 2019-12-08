@@ -17,7 +17,9 @@ const staticcart = {
     "price": 10.9,
     "currencyId": "USD",
     "currencyFormat": "$",
-    "isFreeShipping": true
+    "isFreeShipping": true,
+    "quantity": 1,
+    "size": "M"
   },
   "51498472915966370": {
     "sku": 51498472915966370,
@@ -27,7 +29,9 @@ const staticcart = {
     "price": 29.45,
     "currencyId": "USD",
     "currencyFormat": "$",
-    "isFreeShipping": true
+    "isFreeShipping": true,
+    "quantity": 1,
+    "size": "M"
   },
   "10686354557628304": {
     "sku": 10686354557628304,
@@ -37,7 +41,9 @@ const staticcart = {
     "price": 9,
     "currencyId": "USD",
     "currencyFormat": "$",
-    "isFreeShipping": true
+    "isFreeShipping": true,
+    "quantity": 1,
+    "size": "M"
   },
   "11033926921508488": {
     "sku": 11033926921508488,
@@ -47,7 +53,9 @@ const staticcart = {
     "price": 14,
     "currencyId": "USD",
     "currencyFormat": "$",
-    "isFreeShipping": true
+    "isFreeShipping": true,
+    "quantity": 1,
+    "size": "M"
   },
   "39876704341265610": {
     "sku": 39876704341265610,
@@ -57,7 +65,9 @@ const staticcart = {
     "price": 13.25,
     "currencyId": "USD",
     "currencyFormat": "$",
-    "isFreeShipping": true
+    "isFreeShipping": true,
+    "quantity": 1,
+    "size": "M"
   },
 };
 
@@ -103,15 +113,11 @@ const useStylesgrid = makeStyles(theme => ({
     }
 }));
 
-const Banner = () => {
+const Banner = (cart_data, setCart_data) => {
   const classes = useStyles();
-  const [cart, setCart] = React.useState(true);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [cart, setCart] = useState(true);
+  const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
-  const handleChange = event => {
-    setCart(event.target.checked);
-  };
   
   const handleMenu = event => {
     setAnchorEl(event.currentTarget);
@@ -160,10 +166,10 @@ const Banner = () => {
                   <strong>Your Cart</strong>
                 </MenuItem>
                 <MenuItem>
-                <CartList products={ staticcart } />
+                <CartList cart_data={cart_data} setCart_data={setCart_data}/>
                 </MenuItem>
                 <MenuItem>
-                  Total Price: XX
+                <TotalPrice cart_data={cart_data}/>
                 </MenuItem>
                 <MenuItem onClick={handleClose}>Close Cart</MenuItem>
               </Menu>
@@ -177,28 +183,26 @@ const Banner = () => {
 
 const ProductCard = ({ products }) => {
   const classes = useStylescart();
-  const size = "M"
-  const quantity = 2;
 
   const caption = (
     <React.Fragment>
       <Typography variant='body2'>
-        Size: {size}
+        Size: {products.size}
       </Typography>
       <Typography variant='body2'>
-        Quantity: {quantity}
+        Quantity: {products.quantity}
       </Typography>
       <Typography variant='body2'>
-        Price: {products.currencyFormat}{products.price}
+        Price: {products.currency}{products.price*products.quantity}
       </Typography>
     </React.Fragment>
   );
 
   return(
-    <GridListTile key={products.sku} className={classes.root}>       
-      <img src={`./data/products/${products.sku}_2.jpg`} alt={products.title}/>
+    <GridListTile key={products.id} className={classes.root}>       
+      <img src={`./data/products/${products.id}_2.jpg`} alt={products.name}/>
     <GridListTileBar className={classes.gridlisttilebar}
-      title={products.title}
+      title={products.name}
       subtitle={caption}
       actionIcon={
         <IconButton color='inherit'>
@@ -210,7 +214,98 @@ const ProductCard = ({ products }) => {
   )
 };
 
-const Product = ({ products }) => (
+const CartList = ({ cart_data, setCart_data }) => {
+  const classes = useStylesgrid();
+
+  // const handleRemove = () => {
+  //   console.log("removing")
+  //   const newcart = selectedRestaurants.filter(r => r.name !== restaurantName);
+  //   setSelectedRestaurants(newSelectedRestaurants);
+  // }
+
+  if (cart_data.cart_data.length !== 0) {
+    return (
+      <React.Fragment className={classes.root}>
+          <GridList className={classes.gridList}>
+            { cart_data.cart_data.map(products => <ProductCard key = { products.sku } products = { products }/>)}
+          </GridList>
+      </React.Fragment>
+    );
+  }
+  else {
+    return (
+      <React.Fragment>
+        Empty Cart
+      </React.Fragment>
+    );
+  }
+};
+
+const TotalPrice = ({cart_data}) => {
+  var tp = 0
+
+  if (cart_data.cart_data.length !== 0) {
+    for (var i = 0; i < cart_data.cart_data.length; i++) {
+      tp = tp + cart_data.cart_data[i].price * cart_data.cart_data[i].quantity
+    }
+  }
+  
+  return (
+    <React.Fragment>
+      Total Price: ${tp}
+    </React.Fragment>
+  )
+}
+
+const Product = ({ key, products, cart_data, setCart_data }) => {
+  const [size, setSize] = useState();
+  
+  let cartproduct = {
+    id: products.sku,
+    name: products.title,
+    description: products.description,
+    style: products.style,
+    currency: products.currencyFormat,
+    price: products.price,
+    quantity: 1,
+    size: ""
+  }
+
+  const handleClick = ()=> {
+    if (size === "") {
+      alert("Please select a size!");
+      return;
+    }
+
+    cartproduct.size = size
+    if (cart_data.length === 0) {
+      const newcart = cart_data.concat([cartproduct])
+      setCart_data(newcart)
+    }
+    else {
+      let found = false
+      for (var i = 0; i < cart_data.length; i++)
+      {
+        console.log(cart_data[i].id)
+        if (cart_data[i].id === cartproduct.id && cart_data[i].size === size) {
+          found = true;
+          break;
+        }
+      }
+      
+      if (found) {
+        cart_data[i].quantity++
+      }
+      else {
+        const newcart = cart_data.concat([cartproduct])
+        setCart_data(newcart)
+      }
+    }
+
+    setSize("")
+  };
+
+  return(
   <React.Fragment>
     <Column size = 'one-quarter'>
       <Card>
@@ -233,14 +328,14 @@ const Product = ({ products }) => (
         <Card.Footer>
           <Column size = 'full'>
             <Notification>
-              <SizeButtons />
+              <SizeButtons state = { { size, setSize } }/>
             </Notification>
               <Column.Group gapless>
                 <Card.Footer.Item>
                   { products.currencyFormat }{ products.price }
                 </Card.Footer.Item>
                 <Card.Footer.Item>
-                  <Button color='primary'>Add to cart</Button>
+                  <Button color='primary' onClick={handleClick}>Add to cart</Button>
                 </Card.Footer.Item>
               </Column.Group>
           </Column>
@@ -248,47 +343,47 @@ const Product = ({ products }) => (
       </Card>
     </Column>
   </React.Fragment>
-);
-
-const CartList = ({ products }) => {
-  const classes = useStylesgrid();
-  const data = Object.values(products);
-
-  return (
-    <React.Fragment className={classes.root}>
-        <GridList className={classes.gridList}>
-          { data.map(products => <ProductCard key = { products.sku } products = { products }/>)}
-        </GridList>
-    </React.Fragment>
   );
 };
 
-const ProductList = ({ products }) => {
+const ProductList = ({ products, cart_data, setCart_data }) => {
 
 return (
     <React.Fragment>
       <Column.Group multiline>
-        { products.map(products => <Product key = { products.sku } products = { products }/>)}
+        { products.map(products => <Product key = { products.sku } products = { products } cart_data = {cart_data} setCart_data = {setCart_data}/>)}
       </Column.Group>
     </React.Fragment>
   );
 };
 
-const SizeButtons = () => (
-  <Button.Group align = "centered">
-      { Object.values(sizes)
-        .map(value =>
-          <Button rounded key = { value } >
-              { value }
-          </Button>
-        )
-      }
-  </Button.Group>
+const buttonColor = selected => (
+  selected ? `button is-success is-selected` : 'button'
 );
+
+const SizeButtons = ({state}) => {
+
+  return (
+    <Button.Group align = "centered">
+    { Object.values(sizes)
+      .map(value =>
+        <Button rounded key = { value } 
+        className={ buttonColor(value === state.size) }
+        onClick={ () => state.setSize(value) }
+        >
+            { value }
+        </Button>
+      )
+    }
+  </Button.Group>
+  );
+};
 
 const App = () => {
   const [data, setData] = useState({});
+  const [selected, setSelected] = useState([]);
   const products = Object.values(data);
+  const [cart_data, setCart_data] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -302,10 +397,10 @@ const App = () => {
   return (
     <React.Fragment>
       <Container>
-        <Banner/>
+        <Banner cart_data = {cart_data} setCart_data = {setCart_data}/>
       </Container>
       <Container>
-        <ProductList products={ products } />
+        <ProductList products={ products } cart_data = {cart_data} setCart_data = {setCart_data} />
       </Container>
     </React.Fragment>
   );
