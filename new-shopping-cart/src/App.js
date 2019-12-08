@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import 'rbx/index.css';
-import { Button, Container, Title, Card, Image, Content, Column, Notification } from 'rbx';
+import { Button, Container, Title, Card, Image, Content, Column, Notification, Message } from 'rbx';
 import ShoppingCart from '@material-ui/icons/ShoppingCart';
 import DeleteIcon from '@material-ui/icons/Delete';
-import Button2 from '@material-ui/core/Button';
 import { makeStyles, AppBar, Toolbar, Typography, IconButton, MenuItem, Menu, GridList, GridListTile, GridListTileBar } from '@material-ui/core';
+import Button2 from '@material-ui/core/Button';
 import firebase from 'firebase/app';
 import 'firebase/database';
+import 'firebase/auth';
+import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCMwReaxvMbZ7lyi1JxH82qC8vge4wBf2c",
@@ -176,6 +178,7 @@ const Banner = (cart_data, setCart_data) => {
   const [cart, setCart] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const [user, setUser] = useState(null);
   
   const handleMenu = event => {
     setAnchorEl(event.currentTarget);
@@ -184,6 +187,11 @@ const Banner = (cart_data, setCart_data) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  console.log(user)
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged(setUser);
+  }, []);
 
   return(
     <React.Fragment className={classes.root}>
@@ -192,8 +200,9 @@ const Banner = (cart_data, setCart_data) => {
           <Typography variant="h6" className={classes.title}>
             Shopping
           </Typography>
-          <Button2 color="inherit">Sign up</Button2>
-          <Button2 color="inherit">Log in</Button2>
+          <React.Fragment>
+          { user ?<Welcome user={user}/>: <SignIn/> }
+          </React.Fragment>
           {cart && (
             <React.Fragment>
               <IconButton
@@ -463,12 +472,40 @@ const SizeButtons = ({size, setSize, inven, setInven, products}) => {
   }
 };
 
+const uiConfig = {
+  signInFlow: 'popup',
+  signInOptions: [
+    firebase.auth.GoogleAuthProvider.PROVIDER_ID
+  ],
+  callbacks: {
+    signInSuccessWithAuthResult: () => false
+  }
+};
+
+const Welcome = ({ user }) => (
+  <div>
+      Welcome, {user.displayName}
+      <Button2 className="logout" color="inherit" onClick={() => firebase.auth().signOut()}>
+        Log Out
+      </Button2>
+  </div>
+);
+
+const SignIn = () => (
+    <StyledFirebaseAuth
+      uiConfig={uiConfig}
+      firebaseAuth={firebase.auth()}
+    />
+)
+
+
 const App = () => {
   const [data, setData] = useState({});
   const [selected, setSelected] = useState([]);
   const products = Object.values(data);
   const [cart_data, setCart_data] = useState([]);
   const [inven, setInven] = useState(inventory)
+
 
   useEffect(() => {
     const fetchProducts = async () => {
